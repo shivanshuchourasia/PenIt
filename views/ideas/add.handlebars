@@ -1,3 +1,9 @@
+{{#each errors}}
+  <div class="alert alert-danger">{{text}}</div>
+{{else}}
+
+{{/each}}
+
 <div class="card card-body">
   <h3>Idea</h3>
   <form action="/ideas" method="POST">

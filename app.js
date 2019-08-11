@@ -33,16 +33,43 @@ app.get('/ideas/add', (req, res) => {
 })
 
 app.post('/ideas', (req, res) => {
-  var idea = new Idea({
-    title: req.body.title,
-    details: req.body.details
-  });
+  let errors = [];
 
-  idea.save().then(() => {
-    res.send('Idea Added');
+  if(!req.body.title){
+    errors.push({text: 'Please add a title'});
+  } 
+  if(!req.body.details){
+    errors.push({text: 'Please add details'});
+  }
+
+  if(errors.length > 0){
+    res.render('ideas/add', {
+      errors,
+      title: req.body.title,
+      details: req.body.details
+    })
+  } else{
+    var idea = new Idea({
+      title: req.body.title,
+      details: req.body.details
+    });
+  
+    idea.save().then((idea) => {
+      res.redirect('/ideas');
+    }).catch((e) => {
+      res.status(400).send();
+    });
+  }
+})
+
+app.get('/ideas', (req, res) => {
+  Idea.find()
+    .sort({date: 'desc'})
+    .then((ideas) => {
+    res.render('ideas/index', {ideas});
   }).catch((e) => {
-    res.status(400).send();
-  });
+    res.status(400).send(e);
+  })
 })
 
 const port = 5000;
