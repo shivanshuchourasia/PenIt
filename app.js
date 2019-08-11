@@ -1,6 +1,7 @@
 const express = require('express');
 const exphbs = require('express-handlebars');
 const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
 
 const app = express();
 
@@ -15,6 +16,9 @@ app.engine('handlebars', exphbs({
 }));
 app.set('view engine', 'handlebars');
 
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.json());
+
 app.get('/', (req, res) => {
   var title = 'Welcome';
   res.render('index',{title});
@@ -24,10 +28,14 @@ app.get('/about', (req, res) => {
   res.render('about');
 })
 
-app.post('/ideas/add', (req, res) => {
+app.get('/ideas/add', (req, res) => {
+  res.render('ideas/add');
+})
+
+app.post('/ideas', (req, res) => {
   var idea = new Idea({
-    title: 'My Shop',
-    details: 'Pastry Shop'
+    title: req.body.title,
+    details: req.body.details
   });
 
   idea.save().then(() => {
