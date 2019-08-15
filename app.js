@@ -8,11 +8,12 @@ const flash = require('connect-flash');
 
 const app = express();
 
+const ideas = require('./routes/ideas');
+const users = require('./routes/users');
+
 mongoose.connect('mongodb://localhost/penIt-dev', {useNewUrlParser: true, useFindAndModify: false})
   .then(() => console.log('MongoDB Connected...'))
   .catch((e) => console.log(e));
-
-const {Idea} = require('./models/Idea');
 
 app.engine('handlebars', exphbs({
   defaultLayout: 'main'
@@ -39,101 +40,17 @@ app.use((req, res, next) => {
   next();
 })
 
+app.use('/ideas', ideas);
+app.use('/users', users);
+
 app.get('/', (req, res) => {
   var title = 'Welcome';
   res.render('index',{title});
-})
+});
 
 app.get('/about', (req, res) => {
   res.render('about');
-})
-
-app.get('/ideas/add', (req, res) => {
-  res.render('ideas/add');
-})
-
-app.post('/ideas', (req, res) => {
-  let errors = [];
-
-  if(!req.body.title){
-    errors.push({text: 'Please add a title'});
-  } 
-  if(!req.body.details){
-    errors.push({text: 'Please add details'});
-  }
-
-  if(errors.length > 0){
-    res.render('ideas/add', {
-      errors,
-      title: req.body.title,
-      details: req.body.details
-    })
-  } else{
-    var idea = new Idea({
-      title: req.body.title,
-      details: req.body.details
-    });
-  
-    idea.save().then((idea) => {
-      req.flash('success_msg', 'Idea is successfully added');
-      res.redirect('/ideas');
-    }).catch((e) => {
-      res.status(400).send();
-    });
-  }
-})
-
-app.get('/ideas', (req, res) => {
-  Idea.find()
-    .sort({date: 'desc'})
-    .then((ideas) => {
-    res.render('ideas/index', {ideas});
-  }).catch((e) => {
-    res.status(400).send(e);
-  })
-})
-
-app.get('/ideas/edit/:id', (req, res) => {
-  Idea.findById(req.params.id).then((idea) => {
-    res.render('ideas/edit', {idea});
-  })
-})
-
-app.put('/ideas/:id', (req, res) => {
-  let errors = [];
-
-  if(!req.body.title){
-    errors.push({text: 'Please add a title'});
-  } 
-  if(!req.body.details){
-    errors.push({text: 'Please add details'});
-  }
-
-  if(errors.length > 0){
-    res.render('ideas/edit', {
-      errors,
-      title: req.body.title,
-      details: req.body.details
-    })
-  } else{
-    Idea.findByIdAndUpdate(req.params.id, {
-      $set: {
-        title: req.body.title,
-        details: req.body.details
-      }
-    }).then((idea) => {
-      req.flash('success_msg', 'Idea is updated');
-      res.redirect('/ideas');
-    })
-  }
 });
-
-app.delete('/ideas/:id', (req, res) => {
-  Idea.findByIdAndDelete(req.params.id).then(() => {
-    req.flash('success_msg', 'Idea is removed');
-    res.redirect('/ideas');
-  })
-})
 
 const port = 5000;
 
