@@ -3,10 +3,12 @@ const methodOverride = require('method-override');
 const exphbs = require('express-handlebars');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const session = require('express-session');
+const flash = require('connect-flash');
 
 const app = express();
 
-mongoose.connect('mongodb://localhost/penIt-dev', {useNewUrlParser: true})
+mongoose.connect('mongodb://localhost/penIt-dev', {useNewUrlParser: true, useFindAndModify: false})
   .then(() => console.log('MongoDB Connected...'))
   .catch((e) => console.log(e));
 
@@ -21,6 +23,21 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
 app.use(methodOverride('_method'));
+
+app.use(session({
+  secret: 'secret',
+  resave: true,
+  saveUninitialized: true
+}))
+
+app.use(flash());
+
+app.use((req, res, next) => {
+  res.locals.success_msg = req.flash('success_msg');
+  res.locals.error_msg = req.flash('error_msg');
+  res.locals.error = req.flash('error');
+  next();
+})
 
 app.get('/', (req, res) => {
   var title = 'Welcome';
@@ -58,6 +75,7 @@ app.post('/ideas', (req, res) => {
     });
   
     idea.save().then((idea) => {
+      req.flash('success_msg', 'Idea is successfully added');
       res.redirect('/ideas');
     }).catch((e) => {
       res.status(400).send();
@@ -104,13 +122,17 @@ app.put('/ideas/:id', (req, res) => {
         details: req.body.details
       }
     }).then((idea) => {
+      req.flash('success_msg', 'Idea is updated');
       res.redirect('/ideas');
     })
   }
 });
 
 app.delete('/ideas/:id', (req, res) => {
-  Idea.findByIdAndDelete(req.params.id).then(() => res.redirect('/ideas'))
+  Idea.findByIdAndDelete(req.params.id).then(() => {
+    req.flash('success_msg', 'Idea is removed');
+    res.redirect('/ideas');
+  })
 })
 
 const port = 5000;
