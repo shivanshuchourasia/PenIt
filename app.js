@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const methodOverride = require('method-override');
 const exphbs = require('express-handlebars');
 const mongoose = require('mongoose');
@@ -38,7 +39,9 @@ app.use((req, res, next) => {
   res.locals.error_msg = req.flash('error_msg');
   res.locals.error = req.flash('error');
   next();
-})
+});
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/ideas', ideas);
 app.use('/users', users);
