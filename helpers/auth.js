@@ -6,7 +6,7 @@ module.exports = {
       res.header('Pragma', 'no-cache');
       return next();
     }
-    req.flash('error_msg', 'Not Authorised');
+    req.flash('error_msg2', 'Please login');
     res.redirect('/users/login');
   }
 }
