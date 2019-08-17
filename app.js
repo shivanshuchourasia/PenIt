@@ -3,7 +3,6 @@ const path = require('path');
 const methodOverride = require('method-override');
 const exphbs = require('express-handlebars');
 const passport = require('passport');
-const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const flash = require('connect-flash');
@@ -15,9 +14,7 @@ const users = require('./routes/users');
 
 require('./config/passport')(passport);
 
-mongoose.connect('mongodb://localhost/penIt-dev', {useNewUrlParser: true, useFindAndModify: false})
-  .then(() => console.log('MongoDB Connected...'))
-  .catch((e) => console.log(e));
+require('./db/mongoose');
 
 app.engine('handlebars', exphbs({
   defaultLayout: 'main'
@@ -62,7 +59,7 @@ app.get('/about', (req, res) => {
   res.render('about');
 });
 
-const port = 5000;
+const port = process.env.PORT;
 
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);
