@@ -5,6 +5,8 @@ if(!process.env.NODE_ENV){
   process.env.PORT = 5000;
 }
 
-mongoose.connect(process.env.DB, {useNewUrlParser: true, useFindAndModify: false})
+mongoose.Promise = global.Promise;
+
+mongoose.connect(process.env.DB, {useNewUrlParser: true, useFindAndModify: false, useCreateIndex: true})
   .then(() => console.log('MongoDB Connected...'))
   .catch((e) => console.log(e));
