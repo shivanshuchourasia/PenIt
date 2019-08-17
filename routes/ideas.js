@@ -3,12 +3,13 @@ const mongoose = require('mongoose');
 const router = express.Router();
 
 const {Idea} = require('../models/Idea');
+const {ensureAuthenticated} = require('../helpers/auth');
 
-router.get('/add', (req, res) => {
+router.get('/add', ensureAuthenticated, (req, res) => {
   res.render('ideas/add');
 });
 
-router.post('/', (req, res) => {
+router.post('/', ensureAuthenticated, (req, res) => {
   let errors = [];
 
   if(!req.body.title){
@@ -27,20 +28,21 @@ router.post('/', (req, res) => {
   } else{
     var idea = new Idea({
       title: req.body.title,
-      details: req.body.details
+      details: req.body.details,
+      user: req.user.id
     });
   
     idea.save().then((idea) => {
       req.flash('success_msg', 'Idea is successfully added');
       res.redirect('/ideas');
     }).catch((e) => {
-      res.status(400).send();
+      res.status(400).send(e);
     });
   }
 });
 
-router.get('/', (req, res) => {
-  Idea.find()
+router.get('/', ensureAuthenticated, (req, res) => {
+  Idea.find({user: req.user.id})
     .sort({date: 'desc'})
     .then((ideas) => {
     res.render('ideas/index', {ideas});
@@ -49,13 +51,18 @@ router.get('/', (req, res) => {
   })
 });
 
-router.get('/edit/:id', (req, res) => {
+router.get('/edit/:id', ensureAuthenticated, (req, res) => {
   Idea.findById(req.params.id).then((idea) => {
-    res.render('ideas/edit', {idea});
+    if(idea.user !== req.user.id){
+      req.flash('error_msg', 'Not Authorised');
+      res.redirect('/ideas');
+    } else{
+      res.render('ideas/edit', {idea});
+    }
   })
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', ensureAuthenticated, (req, res) => {
   let errors = [];
 
   if(!req.body.title){
@@ -84,7 +91,7 @@ router.put('/:id', (req, res) => {
   }
 });
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', ensureAuthenticated, (req, res) => {
   Idea.findByIdAndDelete(req.params.id).then(() => {
     req.flash('success_msg', 'Idea is removed');
     res.redirect('/ideas');
